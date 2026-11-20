@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mastermind — Le code secret</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; color: #203a36; background: #f5f3eb; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { max-width: 940px; margin: auto; padding: 48px 24px; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-bottom: 32px; }
+    .eyebrow { font-size: .75rem; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; color: #526b61; }
+    h1 { font-size: clamp(2.4rem, 7vw, 4rem); letter-spacing: -.055em; line-height: 1.1; margin: 10px 0; }
+    h2 { margin: 0; font-size: 1.25rem; }
+    p { line-height: 1.6; }
+    .intro { margin: 0; color: #52665f; }
+    button, select { font: inherit; }
+    button { border: 1px solid #284b40; border-radius: 12px; padding: 13px 20px; cursor: pointer; font-weight: 650; }
+    button:focus-visible, select:focus-visible { outline: 3px solid #235fc4; outline-offset: 4px; }
+    button:hover:not(:disabled) { filter: brightness(.93); }
+    button:disabled { opacity: .55; cursor: default; }
+    .secondary { background: transparent; color: #284b40; white-space: nowrap; }
+    .primary { background: #284b40; color: white; }
+    .card { background: #fffefa; border: 1px solid #dddfd4; border-radius: 22px; padding: 28px; margin-bottom: 22px; }
+    .card-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .counter { font-size: .85rem; background: #edf0e7; padding: 8px 12px; border-radius: 30px; white-space: nowrap; }
+    .secret { display: flex; gap: 9px; margin-top: 22px; }
+    .secret span { display: grid; place-items: center; width: 38px; height: 38px; border: 1px dashed #a4afa1; border-radius: 50%; color: #667b6c; }
+    fieldset { border: 0; margin: 24px 0; padding: 0; min-width: 0; }
+    legend { font-weight: 650; margin-bottom: 14px; }
+    .slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .slot { display: flex; flex-direction: column; gap: 10px; align-items: center; padding: 14px 8px; background: #f6f5ee; border-radius: 14px; }
+    .slot label { font-size: .8rem; color: #52665f; }
+    .peg { display: inline-block; flex-shrink: 0; width: 30px; height: 30px; background: var(--peg, #e1e5dc); border: 1px solid #0003; border-radius: 50%; }
+    .slot .peg { width: 38px; height: 38px; }
+    select { width: 100%; border: 1px solid #c2cbbd; border-radius: 8px; padding: 9px 5px; color: #203a36; background: #fffefa; }
+    .submit-row { display: flex; gap: 18px; align-items: center; }
+    #message { margin: 0; font-size: .95rem; }
+    #message.error { color: #a32222; }
+    .help { color: #52665f; font-size: .9rem; margin: 18px 0 0; }
+    .empty { color: #52665f; padding: 20px 0 0; margin-bottom: 0; }
+    ol { list-style: none; margin: 18px 0 0; padding: 0; }
+    .attempt { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 14px; padding: 16px 0; border-top: 1px solid #e5e6dc; }
+    .attempt-number { font-variant-numeric: tabular-nums; color: #52665f; font-size: .85rem; }
+    .guess { display: flex; flex-wrap: wrap; gap: 14px; }
+    .color { display: flex; align-items: center; gap: 6px; font-size: .8rem; }
+    .score { font-size: .8rem; line-height: 1.7; }
+    .score span { display: block; }
+    details { padding: 0 4px; }
+    summary { cursor: pointer; font-weight: 650; }
+    details p { color: #52665f; font-size: .9rem; max-width: 75ch; }
+    @media (max-width: 650px) {
+      main { padding: 28px 16px; }
+      header { align-items: flex-start; flex-direction: column; }
+      .card { padding: 20px 16px; }
+      .slots { gap: 6px; }
+      .slot { padding: 12px 4px; }
+      select { font-size: .8rem; }
+      .submit-row { align-items: stretch; flex-direction: column; }
+      .attempt { grid-template-columns: 24px 1fr; gap: 8px; }
+      .score { grid-column: 2; }
+      .guess { gap: 10px; }
+      .color { flex-direction: column; gap: 4px; }
+      .card-heading { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <span class="eyebrow">Le code secret · Jeu solo</span>
+        <h1>Mastermind</h1>
+        <p class="intro">Quatre couleurs à découvrir. Dix essais pour y arriver.</p>
+      </div>
+      <button type="button" class="secondary" id="restart">Nouvelle partie</button>
+    </header>
+
+    <section class="card" aria-labelledby="play-title">
+      <div class="card-heading">
+        <h2 id="play-title">À vous de décoder</h2>
+        <span class="counter" id="counter">0 / 10 essais</span>
+      </div>
+      <div class="secret" aria-label="Le code de quatre couleurs est caché">
+        <span aria-hidden="true">?</span><span aria-hidden="true">?</span><span aria-hidden="true">?</span><span aria-hidden="true">?</span>
+      </div>
+      <form id="guess-form" novalidate>
+        <fieldset id="controls">
+          <legend>Votre proposition, de gauche à droite</legend>
+          <div class="slots" id="slots"></div>
+        </fieldset>
+        <div class="submit-row">
+          <button type="submit" class="primary" id="submit">Valider la proposition</button>
+          <p id="message" role="status" aria-live="polite" aria-atomic="true">Choisissez vos quatre couleurs.</p>
+        </div>
+      </form>
+      <p class="help">Une couleur peut apparaître plusieurs fois dans le code.</p>
+    </section>
+
+    <section class="card" aria-labelledby="history-title">
+      <h2 id="history-title">Vos essais</h2>
+      <p class="empty" id="empty">Vos propositions et leurs indices apparaîtront ici.</p>
+      <ol id="history" aria-label="Historique des propositions"></ol>
+    </section>
+
+    <details>
+      <summary>Comment jouer ?</summary>
+      <p>Le code contient quatre couleurs parmi rouge, bleu, vert, jaune, orange et violet, avec répétitions possibles. Il reste fixe et caché pendant la partie. Choisissez quatre couleurs, puis validez votre proposition. Vous pouvez les modifier avant de valider.</p>
+      <p>Les indices donnent le nombre de couleurs bien placées et de couleurs présentes mais mal placées, sans révéler leurs positions. On compte d’abord les bien placées, puis les occurrences restantes : chaque occurrence compte au maximum une fois.</p>
+      <p>Une proposition incomplète ou non autorisée est refusée sans utiliser d’essai. Trouvez les quatre positions en dix essais pour gagner, y compris au dernier essai. Après dix propositions sans victoire, la partie est perdue. Après la fin, les propositions sont bloquées. « Nouvelle partie » choisit un code et efface les essais et les indices.</p>
+    </details>
+  </main>
+  <script>
+    'use strict';
+
+    const PALETTE = Object.freeze(['rouge', 'bleu', 'vert', 'jaune', 'orange', 'violet']);
+    const TEINTES = Object.freeze({ rouge: '#ce4147', bleu: '#3778c2', vert: '#33835c', jaune: '#f1ce46', orange: '#e58b35', violet: '#9363bc' });
+
+    function calculerIndices(secret, proposition) {
+      let bienPlacees = 0;
+      const restantesSecret = [];
+      const restantesProposition = [];
+      for (let i = 0; i < 4; i++) {
+        if (secret[i] === proposition[i]) bienPlacees++;
+        else {
+          restantesSecret.push(secret[i]);
+          restantesProposition.push(proposition[i]);
+        }
+      }
+      let malPlacees = 0;
+      for (const couleur of restantesProposition) {
+        const position = restantesSecret.indexOf(couleur);
+        if (position !== -1) {
+          malPlacees++;
+          restantesSecret.splice(position, 1);
+        }
+      }
+      return { bienPlacees, malPlacees };
+    }
+
+    function creerPartie(secret = Array.from({ length: 4 }, () => PALETTE[Math.floor(Math.random() * PALETTE.length)])) {
+      const code = [...secret];
+      const historique = [];
+      let etat = 'en-cours';
+      function consulter() {
+        return { etat, historique: historique.map(essai => ({ ...essai, proposition: [...essai.proposition] })) };
+      }
+      function proposer(proposition) {
+        if (etat !== 'en-cours') return { erreur: 'La partie est terminée. Lancez une nouvelle partie.' };
+        if (!Array.isArray(proposition) || proposition.length !== 4 || Array.from(proposition).some(c => c === '' || c == null)) {
+          return { erreur: 'Choisissez une couleur pour chacune des quatre positions.' };
+        }
+        if (proposition.some(c => !PALETTE.includes(c))) {
+          return { erreur: 'Utilisez uniquement : rouge, bleu, vert, jaune, orange, violet.' };
+        }
+        const indices = calculerIndices(code, proposition);
+        historique.push({ proposition: [...proposition], ...indices });
+        if (indices.bienPlacees === 4) etat = 'victoire';
+        else if (historique.length === 10) etat = 'defaite';
+        return consulter();
+      }
+      return { proposer, consulter };
+    }
+
+    if (typeof document !== 'undefined') {
+      const $ = id => document.getElementById(id);
+      let partie = creerPartie();
+      const selects = [];
+
+      function pion(couleur) {
+        const element = document.createElement('span');
+        element.className = 'peg';
+        element.setAttribute('aria-hidden', 'true');
+        if (couleur) element.style.setProperty('--peg', TEINTES[couleur]);
+        return element;
+      }
+
+      for (let i = 0; i < 4; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'slot';
+        const label = document.createElement('label');
+        label.htmlFor = 'position-' + i;
+        label.textContent = 'Position ' + (i + 1);
+        const apercu = pion();
+        const select = document.createElement('select');
+        select.id = label.htmlFor;
+        select.name = select.id;
+        select.add(new Option('Choisir…', ''));
+        PALETTE.forEach(c => select.add(new Option(c.charAt(0).toUpperCase() + c.slice(1), c)));
+        select.addEventListener('change', () => {
+          apercu.style.setProperty('--peg', TEINTES[select.value] || '#e1e5dc');
+          select.removeAttribute('aria-invalid');
+        });
+        slot.append(label, apercu, select);
+        $('slots').append(slot);
+        selects.push(select);
+      }
+
+      function afficher() {
+        const { etat, historique } = partie.consulter();
+        $('history').replaceChildren();
+        $('counter').textContent = historique.length + ' / 10 essais';
+        $('empty').hidden = historique.length > 0;
+        for (const [i, essai] of historique.entries()) {
+          const ligne = document.createElement('li');
+          ligne.className = 'attempt';
+          const numero = document.createElement('span');
+          numero.className = 'attempt-number';
+          numero.textContent = String(i + 1).padStart(2, '0');
+          numero.setAttribute('aria-label', 'Essai ' + (i + 1));
+          const couleurs = document.createElement('div');
+          couleurs.className = 'guess';
+          for (const couleur of essai.proposition) {
+            const item = document.createElement('span');
+            item.className = 'color';
+            const nom = document.createElement('span');
+            nom.textContent = couleur;
+            item.append(pion(couleur), nom);
+            couleurs.append(item);
+          }
+          const score = document.createElement('div');
+          score.className = 'score';
+          const bien = document.createElement('span');
+          bien.textContent = essai.bienPlacees + ' bien placée' + (essai.bienPlacees > 1 ? 's' : '');
+          const mal = document.createElement('span');
+          mal.textContent = essai.malPlacees + ' mal placée' + (essai.malPlacees > 1 ? 's' : '');
+          score.append(bien, mal);
+          ligne.append(numero, couleurs, score);
+          $('history').append(ligne);
+        }
+        const fini = etat !== 'en-cours';
+        $('controls').disabled = fini;
+        $('submit').disabled = fini;
+        $('message').className = '';
+        if (etat === 'victoire') $('message').textContent = 'Bravo ! Code trouvé en ' + historique.length + ' essai' + (historique.length > 1 ? 's' : '') + '.';
+        else if (etat === 'defaite') $('message').textContent = 'Partie perdue : les dix essais sont épuisés.';
+        else if (historique.length) {
+          const dernier = historique[historique.length - 1];
+          $('message').textContent = dernier.bienPlacees + ' bien placée(s), ' + dernier.malPlacees + ' mal placée(s). À vous de jouer.';
+        } else $('message').textContent = 'Choisissez vos quatre couleurs.';
+      }
+
+      $('guess-form').addEventListener('submit', event => {
+        event.preventDefault();
+        const resultat = partie.proposer(selects.map(select => select.value));
+        if (resultat.erreur) {
+          $('message').className = 'error';
+          $('message').textContent = resultat.erreur;
+          selects.forEach(select => {
+            if (!PALETTE.includes(select.value)) select.setAttribute('aria-invalid', 'true');
+          });
+          const invalide = selects.find(select => !PALETTE.includes(select.value));
+          if (invalide) invalide.focus();
+          return;
+        }
+        afficher();
+      });
+
+      $('restart').addEventListener('click', () => {
+        partie = creerPartie();
+        selects.forEach(select => {
+          select.value = '';
+          select.removeAttribute('aria-invalid');
+          select.dispatchEvent(new Event('change'));
+        });
+        afficher();
+        selects[0].focus();
+      });
+      afficher();
+    }
+  </script>
+</body>
+</html>
