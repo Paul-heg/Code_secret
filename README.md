@@ -19,4 +19,26 @@
 
 # Vérifications
 
+Les vérifications ci-dessous ont été exécutées automatiquement sur la logique JavaScript extraite de `index.html`, selon les règles `code-couleurs-1.0`. La version essayée est celle du commit GitHub `2befa09` ; son fichier de jeu est identique à la version locale testée. Ces résultats ne constituent pas un test de l’interface dans un navigateur.
+
+Sauf indication contraire, le code secret utilisé est `rouge, bleu, rouge, vert`. Les couleurs sont données de gauche à droite.
+
+| Cas testé | Résultat attendu | Résultat obtenu | Version essayée |
+| --- | --- | --- | --- |
+| 1. Couleurs répétées : proposer `rouge, rouge, bleu, rouge`. | 1 bien placée et 2 mal placées ; la dernière occurrence de rouge proposée ne compte pas. | 1 bien placée et 2 mal placées. Conforme. | `2befa09` |
+| 2. Aucune couleur présente : proposer `jaune, jaune, orange, violet`. | 0 bien placée et 0 mal placée. | 0 bien placée et 0 mal placée. Conforme. | `2befa09` |
+| 3. Toutes les couleurs mal placées : proposer `bleu, rouge, vert, rouge`. | 0 bien placée et 4 mal placées. | 0 bien placée et 4 mal placées. Conforme. | `2befa09` |
+| 4. Proposition incomplète : après un essai valide, proposer `rouge, bleu, vide, vert`. | Refus avec une explication ; le nombre d’essais reste à 1 et l’historique reste identique. | Refus avec une explication ; 1 essai et historique inchangé. Conforme. | `2befa09` |
+| 5. Couleur interdite : après un essai valide, proposer `rouge, bleu, rose, vert`. | Refus avec une explication ; le nombre d’essais reste à 1 et l’historique reste identique. | Refus avec une explication ; 1 essai et historique inchangé. Conforme. | `2befa09` |
+| 6. Victoire au dixième essai : proposer neuf fois `jaune, jaune, jaune, jaune`, puis le code exact. | Victoire au dixième essai, avec 4 bien placées et 0 mal placée. | État de victoire, 10 essais, 4 bien placées et 0 mal placée. Conforme. | `2befa09` |
+| 7. Défaite au dixième essai : proposer dix fois `jaune, jaune, jaune, jaune`. | Défaite après exactement 10 essais. | État de défaite et 10 essais enregistrés. Conforme. | `2befa09` |
+| 8. Partie terminée : après une victoire, puis dans une autre partie après une défaite, proposer le code exact. | Refus dans les deux cas, sans modifier l’état de la partie, les essais ni l’historique. | Refus et état complet inchangé dans les deux cas. Conforme. | `2befa09` |
+| 9. Nouvelle partie dans la logique : après une victoire, créer une nouvelle partie avec `creerPartie()`. | État en cours et historique vide, soit 0 essai. | État en cours et historique vide. Conforme. | `2befa09` |
+| 10. Conservation des propositions : valider `jaune, jaune, jaune, jaune`, puis modifier le tableau de saisie et une copie de l’historique retournée par `consulter()`. | La proposition enregistrée reste `jaune, jaune, jaune, jaune`, avec 0 bien placée et 0 mal placée. | Proposition et indices enregistrés inchangés. Conforme. | `2befa09` |
+
 # Limites
+
+- Le rendu visuel reste à vérifier dans un navigateur, sur ordinateur et sur mobile.
+- L’utilisation au clavier et avec un lecteur d’écran n’a pas été testée.
+- La remise à zéro des sélections, du compteur, de l’historique et des indices par le bouton « Nouvelle partie » reste à vérifier dans l’interface.
+- L’affichage des messages de refus, de victoire et de défaite, ainsi que le blocage des commandes en fin de partie, restent à vérifier dans l’interface.
