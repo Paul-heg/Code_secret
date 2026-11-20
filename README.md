@@ -12,6 +12,11 @@
 
 # Choix
 
+- Le jeu tient dans un fichier `index.html` autonome, sans installation ni dépendance externe, pour faciliter son ouverture, son partage et son utilisation hors ligne.
+- Quatre sélecteurs permettent de choisir et de modifier les couleurs avant validation, pour rendre explicite l’ordre des positions et limiter les erreurs de saisie.
+- Les couleurs sont accompagnées de leur nom pour permettre de les identifier sans dépendre uniquement de leur apparence.
+- L’historique conserve les propositions et leurs indices jusqu’à la nouvelle partie, pour permettre de comparer les essais et de construire un raisonnement.
+
 # Vérifications
 
 # Limites
