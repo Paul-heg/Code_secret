@@ -1,3 +1,7 @@
+- Dépôt : [Paul-heg/Code_secret](https://github.com/Paul-heg/Code_secret).
+- Application : [jouer au Mastermind](https://paul-heg.github.io/Code_secret/).
+- Version du rendu : [tag `jalon-1`](https://github.com/Paul-heg/Code_secret/tree/jalon-1).
+
 # Règles
 
 - Référence : code-couleurs-1.0.
@@ -19,6 +23,8 @@ Permettre à une personne de jouer seule au Mastermind selon les règles ci-dess
 Les règles et les critères d’acceptation décrivent le comportement à reproduire. L’organisation des fonctions ci-dessous décrit l’implémentation actuelle : une réimplémentation peut adopter une autre structure en conservant les comportements attendus et des tests équivalents.
 
 ## Choix techniques actuels
+
+Décision prise avec Codex : nous avons retenu un fichier HTML autonome pour faciliter le partage et permettre de jouer hors ligne, sans installation. Codex a proposé cette organisation et je l’ai validée. Le HTML, les styles et la logique restent regroupés dans `index.html` ; Node.js est réservé aux vérifications de développement. Ce choix convient au périmètre limité de ce jeu, tout en demandant de distinguer clairement la logique et l’interface dans le fichier.
 
 - Le jeu tient dans un fichier `index.html` autonome, sans installation ni dépendance externe, pour faciliter son ouverture, son partage et son utilisation hors ligne.
 - Quatre sélecteurs permettent de choisir et de modifier les couleurs avant validation, pour rendre explicite l’ordre des positions et limiter les erreurs de saisie.
@@ -77,15 +83,17 @@ Prérequis pour les tests : Node.js 24 ou une version ultérieure. Depuis le dos
 node --test tests/mastermind.test.cjs
 ```
 
-Le script lit directement le JavaScript de `index.html` et vérifie les dix cas du tableau ci-dessous sans charger l’interface. Il affiche la version de Node.js et l’empreinte SHA-256 du fichier essayé. Le résultat attendu est dix tests réussis, aucun échec et un code de sortie égal à zéro. Une erreur produit un échec explicite. Aucune installation de bibliothèque n’est nécessaire.
+Le script lit directement le JavaScript de `index.html` et vérifie les dix cas du tableau ci-dessous sans charger l’interface. Il affiche la version de Node.js et l’empreinte SHA-256 du fichier essayé. Le résultat attendu est dix tests réussis, aucun échec et un code de sortie égal à zéro. Une erreur produit un échec explicite. Aucune installation de bibliothèque n’est nécessaire. Ces tests ne couvrent pas les styles ; la correction d’affichage ci-dessous nécessite également un contrôle dans le navigateur.
 
 Si la structure du fichier HTML ou les noms des fonctions changent, adapter le chargement du script de test sans supprimer les cas métier correspondants.
 
 ## Résultats des tests de logique
 
-Nouvelle exécution le 20 novembre 2026 avec le script fourni et Node.js `v24.22.1` : 10 tests réussis, 0 échec, code de sortie 0. Empreinte SHA-256 de `index.html` essayé : `4b09466e1a0cf5a7bf5603d3f12df80e111948edc2ca02a4474381560db4c370`. Le fichier du jeu n’a pas changé depuis la version `2befa09` indiquée dans le tableau, qui conserve la référence des premières vérifications.
+Dernière exécution après la correction d’affichage, le 20 novembre 2026, avec Node.js `v24.22.1` : 10 tests réussis, 0 échec, code de sortie 0. Empreinte SHA-256 de `index.html` essayé : `b111d7e69e9b0a257faf13def541ef01f17ee6a6952afb0f1682e9f35264b01e`. La logique n’a pas changé ; la modification porte sur la disposition des sélecteurs aux petites largeurs.
 
-Les vérifications ci-dessous ont été exécutées automatiquement sur la logique JavaScript extraite de `index.html`, selon les règles `code-couleurs-1.0`. La version essayée est celle du commit GitHub `2befa09` ; son fichier de jeu est identique à la version locale testée. Ces résultats ne constituent pas un test de l’interface dans un navigateur.
+Exécution antérieure au correctif, avec Node.js `v24.22.1` : également 10 tests réussis, 0 échec. Empreinte SHA-256 : `4b09466e1a0cf5a7bf5603d3f12df80e111948edc2ca02a4474381560db4c370`. Ces résultats montrent que les tests de logique seuls ne détectaient pas le défaut d’affichage.
+
+Le tableau ci-dessous conserve les résultats initiaux obtenus sur la logique JavaScript de la version GitHub `2befa09`, selon les règles `code-couleurs-1.0`. Les mêmes dix cas ont été rejoués après la correction et restent conformes. Ces tests automatisés ne chargent pas l’interface dans un navigateur.
 
 Sauf indication contraire, le code secret utilisé est `rouge, bleu, rouge, vert`. Les couleurs sont données de gauche à droite.
 
@@ -102,7 +110,36 @@ Sauf indication contraire, le code secret utilisé est `rouge, bleu, rouge, vert
 | 9. Nouvelle partie dans la logique : après une victoire, créer une nouvelle partie avec `creerPartie()`. | État en cours et historique vide, soit 0 essai. | État en cours et historique vide. Conforme. | `2befa09` |
 | 10. Conservation des propositions : valider `jaune, jaune, jaune, jaune`, puis modifier le tableau de saisie et une copie de l’historique retournée par `consulter()`. | La proposition enregistrée reste `jaune, jaune, jaune, jaune`, avec 0 bien placée et 0 mal placée. | Proposition et indices enregistrés inchangés. Conforme. | `2befa09` |
 
-## Contrôles manuels à effectuer
+## Correction d’un défaut réel : noms de couleurs tronqués
+
+**Défaut reproduit :** sur la version [ebc9c11](https://github.com/Paul-heg/Code_secret/commit/ebc9c114882b66bc71b04905c94e979f2b116a7e), ouvrir l’application avec une fenêtre de 320 × 740 pixels et choisir `orange, violet, rouge, jaune`. Les quatre sélecteurs restent sur une seule ligne et les noms des couleurs sont tronqués. Cela gêne leur identification par le texte.
+
+**Résultat attendu :** pouvoir lire entièrement le nom choisi dans chacune des quatre positions.
+
+**Correction :** ajouter une règle CSS pour les fenêtres d’au plus 480 pixels : les sélecteurs passent sur deux colonnes, avec des noms plus grands. Les libellés « Position 1 » à « Position 4 » restent visibles et le code conserve son ordre. Aucun calcul d’indices ni aucune règle de partie n’est modifié.
+
+| Preuve | Résultat |
+| --- | --- |
+| [Avant correction](preuves/mobile-avant.jpg), version `ebc9c11`, fenêtre de 320 × 740 pixels. | Les noms sélectionnés sont tronqués. Défaut constaté dans le navigateur intégré de ChatGPT. |
+| [Après correction](preuves/mobile-apres.jpg), version [65bc234](https://github.com/Paul-heg/Code_secret/commit/65bc234bd076e7e85296bc4b3dd78cc4cbab2b31), même fenêtre et mêmes couleurs. | Les quatre noms sont lisibles entièrement sur deux colonnes. |
+
+![Avant correction : noms de couleurs tronqués à 320 pixels](preuves/mobile-avant.jpg)
+
+![Après correction : noms de couleurs lisibles à 320 pixels](preuves/mobile-apres.jpg)
+
+## Contrôles d’interface réalisés
+
+Contrôles exécutés le 20 novembre 2026 sur GitHub Pages, dans le navigateur intégré de ChatGPT sur ordinateur. La version exacte du navigateur n’a pas été relevée ; le contrôle à 320 pixels simule une fenêtre étroite et ne remplace pas un test sur téléphone physique.
+
+| Version essayée | Manipulation | Résultat attendu | Résultat obtenu |
+| --- | --- | --- | --- |
+| `ebc9c11` | Ouvrir l’application en ligne. | Afficher les quatre positions, 0 essai et un historique vide. | Conforme ; le jeu est accessible sur GitHub Pages. |
+| `ebc9c11` | Valider une proposition vide. | Afficher une explication, conserver 0 essai et l’historique vide. | Conforme. |
+| `ebc9c11` | Choisir `rouge, bleu, vert, jaune` et valider. | Enregistrer la proposition et ses indices et passer à 1 essai. | Conforme ; 0 bien placée et 2 mal placées pour le tirage de cette partie. Le secret étant caché, ce contrôle ne prouve pas le calcul des indices, vérifié séparément par les tests de logique. |
+| `ebc9c11` | Cliquer sur « Nouvelle partie » après cet essai. | Vider les sélections, l’historique et les indices, remettre le compteur à 0 et permettre de jouer. | Conforme. |
+| `65bc234` | À 320 × 740 pixels, choisir `orange, violet, rouge, jaune` après correction. | Lire les quatre noms et conserver les quatre positions sans débordement horizontal. | Conforme : deux colonnes, quatre noms entiers et aucune largeur dépassant celle de la fenêtre. |
+
+## Contrôles manuels à poursuivre
 
 Ces contrôles constituent une procédure ; ils ne sont pas déclarés réussis tant qu’une exécution n’a pas été consignée.
 
@@ -119,12 +156,13 @@ Pour chaque contrôle exécuté, consigner la date, le commit ou l’empreinte d
 
 # Limites
 
-## Comportements non testés dans l’interface
+## Comportements encore incertains ou non testés
 
-- Le rendu visuel reste à vérifier dans un navigateur, sur ordinateur et sur mobile.
+- Le rendu et les interactions restent à vérifier sur téléphone physique et dans les autres navigateurs. Une vérification à 320 pixels dans le navigateur intégré ne garantit pas toute la compatibilité mobile.
+- Le fonctionnement hors ligne et la lisibilité d’un historique de dix essais restent à vérifier dans l’interface.
 - L’utilisation au clavier et avec un lecteur d’écran n’a pas été testée.
-- La remise à zéro des sélections, du compteur, de l’historique et des indices par le bouton « Nouvelle partie » reste à vérifier dans l’interface.
-- L’affichage des messages de refus, de victoire et de défaite, ainsi que le blocage des commandes en fin de partie, restent à vérifier dans l’interface.
+- La remise à zéro par « Nouvelle partie » est vérifiée après un essai ; elle reste à vérifier dans l’interface après une victoire et après une défaite.
+- Les messages de victoire et de défaite ainsi que le blocage des commandes en fin de partie restent à vérifier dans l’interface. Le refus d’une proposition vide a été contrôlé.
 
 ## Questions ouvertes à confirmer avant modification
 
