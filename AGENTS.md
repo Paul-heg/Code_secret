@@ -1,0 +1,7 @@
+- Lire le README et les règles avant de modifier.
+- Signaler une ambiguïté plutôt qu’inventer une règle.
+- Limiter le changement à la demande en cours.
+- Vérifier ce qui change et expliquer les résultats.
+- Garder visibles les limites et questions ouvertes.
+- Faire un commit à chaque nouveau changement important.
+- Si mon message se termine par ??, reformule brièvement ce que tu as compris, puis attends mon GO avant d’exécuter la demande. Sinon, exécute directement.
