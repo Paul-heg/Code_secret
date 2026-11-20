@@ -5,3 +5,10 @@
 - Garder visibles les limites et questions ouvertes.
 - Faire un commit à chaque nouveau changement important.
 - Si mon message se termine par ??, reformule brièvement ce que tu as compris, puis attends mon GO avant d’exécuter la demande. Sinon, exécute directement.
+- Demander validation avant tout ajout ou modification des exigences dans README.md ou AGENTS.md, sauf si la demande en cours autorise déjà explicitement ce changement.
+- Distinguer les règles obligatoires, les choix techniques et les questions ouvertes ; ne pas transformer une hypothèse en exigence.
+- Prendre les règles du README comme référence pour le comportement du jeu. Préserver les identifiants de couleurs et les contrats documentés, sauf changement explicitement demandé ; une autre organisation technique doit conserver les mêmes comportements.
+- Pour chaque comportement modifié, exécuter les vérifications correspondantes et indiquer la version testée, les résultats attendus et les résultats obtenus.
+- Distinguer les tests de logique des tests d’interface ; ne déclarer vérifié que ce qui a réellement été testé.
+- Conserver des procédures de test reproductibles et mettre à jour la documentation concernée. Pour la logique actuelle, exécuter `node --test tests/mastermind.test.cjs` ; pour l’interface, suivre les contrôles manuels du README et consigner les résultats.
+- Avant chaque commit, vérifier que seuls les fichiers liés à la demande ont changé et ne pas inclure de modifications étrangères à cette demande.
